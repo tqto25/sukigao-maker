@@ -1,0 +1,591 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="写真と名前を登録して、自分だけの「好き顔9選」画像を作れるメーカー。作成者 @tqto25">
+<meta property="og:title" content="好き顔9選メーカー">
+<meta property="og:description" content="写真と名前を登録して、自分だけの「好き顔9選」画像を作ろう。">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@tqto25">
+<style>
+  *,*::before,*::after{box-sizing:border-box;}
+  :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);}
+  body{margin:0;font-size:14px;}
+  img{max-width:100%;}
+</style>
+<title>好き顔9選メーカー</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800&display=swap">
+<style>
+  :root{
+    --b-bg:#FBF5F8; --b-card:#FFFFFF; --b-title:#3A2433; --b-name:#2E2230; --b-sub:#7D6F78; --b-badge:#A3325F;
+    --ui-line: color-mix(in srgb, var(--b-sub) 28%, transparent);
+    --ui-soft: color-mix(in srgb, var(--b-sub) 10%, var(--b-card));
+    --font: "Noto Sans JP", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+  }
+  [hidden]{display:none!important;}
+  html,body{background:var(--b-bg);}
+  body{font-family:var(--font);color:var(--b-name);-webkit-tap-highlight-color:transparent;padding-inline:12px;padding-block:0 96px;}
+  button,input{font-family:inherit;}
+  button{cursor:pointer;}
+  :focus-visible{outline:2px solid var(--b-badge);outline-offset:2px;}
+
+  .app{max-width:600px;margin:0 auto;}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-block:14px 4px;}
+  .brand{font-weight:800;font-size:13px;letter-spacing:.06em;color:var(--b-badge);}
+  .hint{font-size:12px;color:var(--b-sub);}
+
+  /* ===== 9選ボード ===== */
+  .board{padding-block:14px 8px;}
+  .board-title{all:unset;display:block;width:100%;box-sizing:border-box;text-align:center;font-weight:800;color:var(--b-title);
+    font-size:clamp(24px,7.4vw,40px);letter-spacing:.02em;line-height:1.25;padding:6px 4px 18px;text-wrap:balance;cursor:pointer;word-break:break-word;}
+  .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(8px,2.4vw,14px);}
+  .card{all:unset;box-sizing:border-box;display:flex;flex-direction:column;background:var(--b-card);border-radius:6px;
+    padding:clamp(6px,1.8vw,10px);box-shadow:0 1px 2px rgba(60,20,40,.05),0 2px 10px rgba(60,20,40,.04);cursor:pointer;min-width:0;
+    transition:transform .15s ease;}
+  .card:active{transform:scale(.97);}
+  .card:focus-visible{outline:2px solid var(--b-badge);outline-offset:2px;}
+  .ph{position:relative;aspect-ratio:1/1;max-width:100%;border-radius:clamp(8px,2.2vw,12px);overflow:hidden;background:color-mix(in srgb,var(--b-sub) 12%,var(--b-card));}
+  .ph img{display:block;width:100%;height:100%;object-fit:cover;}
+  .empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--b-sub);
+    border:1.5px dashed color-mix(in srgb,var(--b-sub) 45%,transparent);border-radius:inherit;}
+  .empty span{font-size:clamp(22px,6vw,30px);line-height:1;font-weight:400;}
+  .empty small{font-size:clamp(9px,2.4vw,11px);}
+  .nm{margin-top:clamp(6px,1.8vw,10px);font-weight:700;font-size:clamp(11px,3vw,15px);line-height:1.4;color:var(--b-name);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-inline:2px;}
+  .nm.placeholder{color:color-mix(in srgb,var(--b-sub) 60%,transparent);font-weight:500;}
+  .sb{margin-top:2px;font-size:clamp(9px,2.5vw,12px);line-height:1.4;color:var(--b-sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-inline:2px;}
+
+  .badge{position:absolute;top:7%;left:7%;display:flex;align-items:center;justify-content:center;font-weight:800;line-height:1;}
+  .badge.num{width:clamp(20px,6vw,30px);height:clamp(20px,6vw,30px);border-radius:clamp(4px,1vw,6px);background:var(--b-badge);color:#fff;font-size:clamp(12px,3.6vw,17px);}
+  .badge.crown{height:clamp(22px,6.4vw,32px);padding-inline:clamp(6px,1.6vw,9px);gap:2px;border-radius:999px;font-size:clamp(13px,3.8vw,18px);
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.45),0 1px 3px rgba(0,0,0,.12);}
+  .badge.crown svg{width:clamp(12px,3.4vw,17px);height:clamp(12px,3.4vw,17px);}
+  .r1{background:linear-gradient(160deg,#F7E09A,#DDB257);color:#6B4A12;}
+  .r2{background:linear-gradient(160deg,#F2F3F6,#C9CDD5);color:#4A4F58;}
+  .r3{background:linear-gradient(160deg,#EFC9A6,#C88C5F);color:#5A3316;}
+
+  .credit{text-align:center;font-size:12px;color:var(--b-sub);padding-block:14px 8px;}
+  .credit a{color:var(--b-badge);font-weight:700;text-decoration:none;}
+  .credit a:hover{text-decoration:underline;}
+
+  /* ===== 下部バー ===== */
+  .bar{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;gap:10px;justify-content:center;
+    padding:10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+    background:color-mix(in srgb,var(--b-card) 88%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+    border-top:1px solid var(--ui-line);}
+  .bar button{flex:1;max-width:260px;}
+  .btn{border:0;border-radius:999px;padding:13px 16px;font-size:15px;font-weight:700;background:var(--ui-soft);color:var(--b-name);}
+  .btn.primary{background:var(--b-badge);color:#fff;}
+  .btn.ghost{background:transparent;border:1px solid var(--ui-line);}
+  .btn.danger{background:transparent;color:#C0392B;border:1px solid color-mix(in srgb,#C0392B 35%,transparent);}
+  .btn.danger.armed{background:#C0392B;color:#fff;}
+  .btn:disabled{opacity:.4;cursor:default;}
+
+  /* ===== シート ===== */
+  .scrim{position:fixed;inset:0;z-index:30;background:rgba(20,10,18,.38);opacity:0;pointer-events:none;transition:opacity .2s;}
+  .scrim.on{opacity:1;pointer-events:auto;}
+  .sheet{position:fixed;left:0;right:0;bottom:0;z-index:40;max-width:600px;margin:0 auto;max-height:92%;overflow-y:auto;overscroll-behavior:contain;
+    background:var(--b-card);color:var(--b-name);border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.15);
+    padding:8px 16px calc(20px + env(safe-area-inset-bottom, 0px));transform:translateY(105%);transition:transform .25s cubic-bezier(.2,.8,.2,1);}
+  .sheet.on{transform:none;}
+  .grab{width:40px;height:4px;border-radius:4px;background:var(--ui-line);margin:4px auto 10px;}
+  .sheet-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;}
+  .sheet-head h2{margin:0;font-size:17px;font-weight:800;}
+  .x{all:unset;cursor:pointer;font-size:14px;font-weight:700;color:var(--b-badge);padding:8px 4px;}
+  .stack{display:flex;flex-direction:column;gap:16px;}
+  .field{display:flex;flex-direction:column;gap:6px;}
+  .field label,.label{font-size:12px;font-weight:700;color:var(--b-sub);letter-spacing:.04em;}
+  .field input[type=text]{font-size:16px;padding:12px 14px;border-radius:12px;border:1px solid var(--ui-line);background:var(--b-bg);color:var(--b-name);width:100%;box-sizing:border-box;}
+  .row{display:flex;gap:8px;flex-wrap:wrap;}
+  .row .btn{flex:1;}
+
+  .crop-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;}
+  .crop{position:relative;width:min(100%,300px);aspect-ratio:1/1;max-width:100%;border-radius:14px;overflow:hidden;background:var(--ui-soft);touch-action:none;}
+  .crop canvas{display:block;width:100%;height:100%;cursor:grab;}
+  .crop .pick{all:unset;position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;
+    color:var(--b-sub);font-size:14px;font-weight:700;border:2px dashed var(--ui-line);border-radius:14px;}
+  .crop .pick span{font-size:40px;font-weight:400;line-height:1;}
+  .crop-note{font-size:12px;color:var(--b-sub);text-align:center;}
+  .zoom{display:flex;align-items:center;gap:10px;width:min(100%,300px);}
+  .zoom input{flex:1;accent-color:var(--b-badge);}
+  .zoom span{font-size:12px;color:var(--b-sub);}
+
+  .rank-row{display:flex;align-items:center;gap:8px;}
+  .rank-row .rank-now{flex:1;text-align:center;font-weight:800;font-size:15px;}
+  .rank-row .btn{padding:10px 14px;font-size:14px;}
+
+  .presets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
+  .preset{all:unset;cursor:pointer;box-sizing:border-box;border-radius:12px;padding:8px;border:1.5px solid var(--ui-line);display:flex;flex-direction:column;gap:6px;align-items:center;font-size:12px;font-weight:700;}
+  .preset.sel{border-color:var(--b-badge);box-shadow:0 0 0 2px color-mix(in srgb,var(--b-badge) 25%,transparent);}
+  .swatch{display:flex;width:100%;height:22px;border-radius:7px;overflow:hidden;border:1px solid rgba(0,0,0,.06);}
+  .swatch i{flex:1;}
+  .colors{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+  .color{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;border:1px solid var(--ui-line);font-size:13px;font-weight:500;}
+  .color input{width:34px;height:34px;border:0;padding:0;background:none;border-radius:8px;flex-shrink:0;}
+  .color input::-webkit-color-swatch-wrapper{padding:0;}
+  .color input::-webkit-color-swatch{border:1px solid rgba(0,0,0,.12);border-radius:8px;}
+  .toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border-radius:12px;border:1px solid var(--ui-line);font-size:14px;}
+  .toggle input{width:22px;height:22px;accent-color:var(--b-badge);}
+
+  /* ===== 書き出し ===== */
+  .modal{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
+    background:rgba(18,10,16,.86);padding:calc(16px + env(safe-area-inset-top, 0px)) 16px calc(16px + env(safe-area-inset-bottom, 0px));}
+  .modal img{max-width:100%;max-height:calc(100% - 130px);border-radius:8px;box-shadow:0 10px 40px rgba(0,0,0,.4);-webkit-touch-callout:default;user-select:auto;}
+  .modal p{margin:0;color:#fff;font-size:14px;font-weight:700;text-align:center;line-height:1.6;}
+  .modal p small{display:block;font-weight:400;opacity:.75;font-size:12px;}
+  .modal .btn{background:#fff;color:#222;min-width:160px;}
+  .loading{color:#fff;font-size:14px;}
+
+  .toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom, 0px));transform:translateX(-50%) translateY(10px);z-index:60;
+    background:#2a2028;color:#fff;font-size:13px;padding:10px 16px;border-radius:999px;opacity:0;transition:.2s;pointer-events:none;max-width:calc(100% - 32px);text-align:center;}
+  .toast.on{opacity:1;transform:translateX(-50%);}
+
+  @media (prefers-reduced-motion: reduce){ .sheet,.scrim,.card,.toast{transition:none;} }
+</style>
+
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <span class="brand">好き顔9選メーカー</span>
+    <span class="hint">枠をタップして登録</span>
+  </header>
+  <main class="board" id="board">
+    <button class="board-title" id="boardTitle" aria-label="タイトルを変更"></button>
+    <div class="grid" id="grid"></div>
+  </main>
+  <footer class="credit">作成者 <a href="https://x.com/tqto25" target="_blank" rel="noopener">@tqto25</a></footer>
+</div>
+
+<nav class="bar">
+  <button class="btn" id="btnDesign">タイトル・色</button>
+  <button class="btn primary" id="btnExport">画像にする</button>
+</nav>
+
+<div class="scrim" id="scrim"></div>
+
+<!-- 枠の編集 -->
+<section class="sheet" id="editSheet" aria-label="枠を編集">
+  <div class="grab"></div>
+  <div class="sheet-head"><h2 id="editHead">1位を編集</h2><button class="x" id="editDone">完了</button></div>
+  <div class="stack">
+    <div class="crop-wrap">
+      <div class="crop" id="crop">
+        <canvas id="cropCanvas"></canvas>
+        <button class="pick" id="pickBig"><span>＋</span>写真を選ぶ</button>
+      </div>
+      <div class="zoom" id="zoomRow"><span>縮小</span><input type="range" id="zoom" min="1" max="4" step="0.01" value="1" aria-label="拡大"><span>拡大</span></div>
+      <div class="crop-note" id="cropNote">ドラッグで位置、2本指かスライダーで拡大</div>
+      <button class="btn ghost" id="pickSmall" style="padding:9px 18px;font-size:14px">写真を変更</button>
+    </div>
+    <div class="field">
+      <label for="inName">名前</label>
+      <input type="text" id="inName" maxlength="24" placeholder="例：さくら" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="inSub">サブテキスト（空欄でもOK）</label>
+      <input type="text" id="inSub" maxlength="30" placeholder="グループ名など" autocomplete="off">
+    </div>
+    <div class="field">
+      <span class="label">順位</span>
+      <div class="rank-row">
+        <button class="btn" id="rankUp">↑ 上げる</button>
+        <div class="rank-now" id="rankNow">1位</div>
+        <button class="btn" id="rankDown">↓ 下げる</button>
+      </div>
+    </div>
+    <div class="row">
+      <button class="btn danger" id="clearSlot">この枠を空にする</button>
+      <button class="btn primary" id="editDone2">完了</button>
+    </div>
+  </div>
+</section>
+
+<!-- デザイン -->
+<section class="sheet" id="designSheet" aria-label="タイトルと色">
+  <div class="grab"></div>
+  <div class="sheet-head"><h2>タイトル・色</h2><button class="x" id="designDone">完了</button></div>
+  <div class="stack">
+    <div class="field">
+      <label for="inTitle">タイトル</label>
+      <input type="text" id="inTitle" maxlength="30" autocomplete="off">
+    </div>
+    <div class="field">
+      <span class="label">配色</span>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="field">
+      <span class="label">色を細かく変える</span>
+      <div class="colors" id="colors"></div>
+    </div>
+    <label class="toggle"><span>1〜3位を王冠バッジにする</span><input type="checkbox" id="inCrown"></label>
+    <button class="btn danger" id="resetAll">すべてリセット</button>
+  </div>
+</section>
+
+<!-- 書き出し -->
+<div class="modal" id="exportModal" hidden>
+  <div class="loading" id="exportLoading">画像を作っています…</div>
+  <img id="exportImg" alt="好き顔9選の画像" hidden>
+  <p id="exportMsg" hidden>画像を長押しして「写真に保存」<small>パソコンは右クリックで保存できます</small></p>
+  <button class="btn" id="exportClose">閉じる</button>
+</div>
+
+<input type="file" id="file" accept="image/*" hidden>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(() => {
+  const KEY = 'sukigao9-maker-v1';
+  const CROWN = 'M3 8.5l4.6 3.4L12 5.2l4.4 6.7L21 8.5l-1.9 9.3H4.9L3 8.5z';
+  const THEMES = [
+    {id:'ichigo', name:'いちごミルク', c:{bg:'#FBF5F8',card:'#FFFFFF',title:'#3A2433',name:'#2E2230',sub:'#7D6F78',badge:'#A3325F'}},
+    {id:'lavender', name:'ラベンダー', c:{bg:'#F4F1FB',card:'#FFFFFF',title:'#2E2748',name:'#2A2540',sub:'#7A7592',badge:'#6B4FB3'}},
+    {id:'mint', name:'ミント', c:{bg:'#EEF7F3',card:'#FFFFFF',title:'#1F3A34',name:'#1E302C',sub:'#6A807A',badge:'#2E8C74'}},
+    {id:'soda', name:'ソーダ', c:{bg:'#EEF4FB',card:'#FFFFFF',title:'#1D2E4A',name:'#1C2A40',sub:'#6D7B90',badge:'#2F6FBF'}},
+    {id:'mono', name:'モノクロ', c:{bg:'#F1F1F1',card:'#FFFFFF',title:'#141414',name:'#1A1A1A',sub:'#767676',badge:'#222222'}},
+    {id:'night', name:'ナイト', c:{bg:'#1E1A24',card:'#2B2533',title:'#F6EEF6',name:'#F3EAF2',sub:'#B3A6B6',badge:'#E0548F'}},
+  ];
+  const COLOR_LABELS = [['bg','背景'],['card','カード'],['title','タイトル文字'],['name','名前の文字'],['sub','サブの文字'],['badge','4〜9位バッジ']];
+
+  const $ = id => document.getElementById(id);
+  const uid = () => Math.random().toString(36).slice(2,10);
+  const clamp = (v,a,b) => Math.min(b, Math.max(a, v));
+
+  function fresh(){ return {title:'あなたの好き顔9選', crown:true, colors:{...THEMES[0].c}, items:Array(9).fill(null)}; }
+  function load(){
+    try{
+      const s = JSON.parse(localStorage.getItem(KEY));
+      if(s && Array.isArray(s.items) && s.items.length===9 && s.colors) return s;
+    }catch(e){}
+    return null;
+  }
+  let state = load() || fresh();
+  let saveTimer = null;
+  function save(){
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      try{ localStorage.setItem(KEY, JSON.stringify(state)); }
+      catch(e){ toast('端末の保存容量がいっぱいで、途中保存できませんでした'); }
+    }, 350);
+  }
+
+  let toastTimer;
+  function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('on'),2600); }
+
+  /* ---------- 画像 ---------- */
+  const imgCache = new Map();
+  function getImg(item){
+    if(!item || !item.src) return Promise.resolve(null);
+    const hit = imgCache.get(item.id);
+    if(hit && hit.src === item.src) return hit.p;
+    const p = new Promise(res => { const im = new Image(); im.onload=()=>res(im); im.onerror=()=>res(null); im.src=item.src; });
+    imgCache.set(item.id, {src:item.src, p});
+    return p;
+  }
+  function clampCrop(item){
+    const c=item.crop, base=Math.max(1/item.w, 1/item.h);
+    c.s = clamp(c.s,1,4);
+    const w=item.w*base*c.s, h=item.h*base*c.s;
+    c.ox = clamp(c.ox, -(w-1)/2, (w-1)/2);
+    c.oy = clamp(c.oy, -(h-1)/2, (h-1)/2);
+  }
+  function drawCrop(ctx, img, item, x, y, S){
+    const c=item.crop, base=Math.max(S/img.naturalWidth, S/img.naturalHeight), sc=base*c.s;
+    const w=img.naturalWidth*sc, h=img.naturalHeight*sc;
+    ctx.drawImage(img, x+(S-w)/2+c.ox*S, y+(S-h)/2+c.oy*S, w, h);
+  }
+  const thumbCache = new Map();
+  async function thumb(item){
+    const key = item.id+'|'+item.src.length+'|'+item.crop.s.toFixed(3)+'|'+item.crop.ox.toFixed(4)+'|'+item.crop.oy.toFixed(4);
+    if(thumbCache.get(item.id)?.key === key) return thumbCache.get(item.id).url;
+    const img = await getImg(item); if(!img) return '';
+    const S=420, cv=document.createElement('canvas'); cv.width=cv.height=S;
+    const ctx=cv.getContext('2d'); ctx.imageSmoothingQuality='high'; drawCrop(ctx,img,item,0,0,S);
+    const url=cv.toDataURL('image/jpeg',.88);
+    thumbCache.set(item.id,{key,url}); return url;
+  }
+
+  /* ---------- 描画 ---------- */
+  function applyColors(){
+    const r=document.documentElement.style, c=state.colors;
+    r.setProperty('--b-bg',c.bg); r.setProperty('--b-card',c.card); r.setProperty('--b-title',c.title);
+    r.setProperty('--b-name',c.name); r.setProperty('--b-sub',c.sub); r.setProperty('--b-badge',c.badge);
+    const dark = lum(c.bg) < .35;
+    r.setProperty('color-scheme', dark ? 'dark' : 'light');
+  }
+  function lum(hex){ const n=parseInt(hex.slice(1),16); return (0.299*(n>>16)+0.587*((n>>8)&255)+0.114*(n&255))/255; }
+  function badgeHTML(rank){
+    if(rank<=3 && state.crown) return `<span class="badge crown r${rank}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="${CROWN}"/></svg>${rank}</span>`;
+    return `<span class="badge num">${rank}</span>`;
+  }
+  const esc = s => String(s).replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+
+  function renderBoard(){
+    applyColors();
+    $('boardTitle').textContent = state.title || ' ';
+    const g=$('grid'); g.innerHTML='';
+    state.items.forEach((it,i) => {
+      const b=document.createElement('button'); b.className='card'; b.dataset.i=i;
+      b.setAttribute('aria-label', `${i+1}位 ${it&&it.name?it.name:'未登録'}`);
+      const has = it && it.src;
+      b.innerHTML = `<div class="ph">${has?'<img alt="">':'<div class="empty"><span>＋</span><small>タップして追加</small></div>'}${badgeHTML(i+1)}</div>
+        <div class="nm${it&&it.name?'':' placeholder'}">${it&&it.name?esc(it.name):(has?'名前':'')||'&nbsp;'}</div>
+        <div class="sb">${it&&it.sub?esc(it.sub):'&nbsp;'}</div>`;
+      b.addEventListener('click',()=>openEdit(i));
+      g.appendChild(b);
+      if(has) thumb(it).then(u=>{ const im=b.querySelector('img'); if(im) im.src=u; });
+    });
+    fitTexts();
+  }
+  function fitTexts(){
+    document.querySelectorAll('.nm,.sb').forEach(el=>{
+      el.style.fontSize='';
+      let fs=parseFloat(getComputedStyle(el).fontSize), min=fs*0.62;
+      while(el.scrollWidth>el.clientWidth+1 && fs>min){ fs-=0.5; el.style.fontSize=fs+'px'; }
+    });
+  }
+  window.addEventListener('resize',()=>{ clearTimeout(fitTexts.t); fitTexts.t=setTimeout(fitTexts,120); });
+  document.fonts && document.fonts.ready.then(fitTexts);
+
+  /* ---------- シート ---------- */
+  let openSheet=null;
+  function showSheet(el){ openSheet=el; $('scrim').classList.add('on'); el.classList.add('on'); el.scrollTop=0; }
+  function hideSheet(){
+    if(!openSheet) return;
+    const was=openSheet; openSheet=null;
+    was.classList.remove('on'); $('scrim').classList.remove('on');
+    if(was.id==='editSheet') closeEdit();
+    renderBoard();
+  }
+  $('scrim').addEventListener('click',hideSheet);
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ if(!$('exportModal').hidden) closeExport(); else hideSheet(); } });
+
+  /* ---------- 枠の編集 ---------- */
+  let cur=0;
+  const cv=$('cropCanvas'), cctx=cv.getContext('2d');
+  function item(){ return state.items[cur]; }
+  function ensureItem(){ if(!state.items[cur]) state.items[cur]={id:uid(),name:'',sub:'',src:null,w:1,h:1,crop:{s:1,ox:0,oy:0}}; return state.items[cur]; }
+
+  function openEdit(i){
+    cur=i; disarm();
+    const it=state.items[i];
+    $('inName').value = it?.name || '';
+    $('inSub').value = it?.sub || '';
+    syncEditHead(); syncCrop();
+    showSheet($('editSheet'));
+  }
+  function closeEdit(){
+    const it=item();
+    if(it && !it.src && !it.name && !it.sub){ state.items[cur]=null; save(); }
+  }
+  function syncEditHead(){
+    $('editHead').textContent = `${cur+1}位を編集`;
+    $('rankNow').textContent = `${cur+1}位`;
+    $('rankUp').disabled = cur===0; $('rankDown').disabled = cur===8;
+  }
+  function syncCrop(){
+    const it=item(), has=!!(it&&it.src);
+    $('pickBig').hidden = has; $('zoomRow').hidden=!has; $('cropNote').hidden=!has; $('pickSmall').hidden=!has;
+    if(has){ $('zoom').value=it.crop.s; }
+    requestAnimationFrame(drawEditor);
+  }
+  async function drawEditor(){
+    const it=item(); const r=cv.getBoundingClientRect(); const dpr=Math.min(window.devicePixelRatio||1,3);
+    const S=Math.round(r.width*dpr)||600; if(cv.width!==S){ cv.width=cv.height=S; }
+    cctx.clearRect(0,0,S,S);
+    if(!it||!it.src) return;
+    const img=await getImg(it); if(!img||item()!==it) return;
+    cctx.clearRect(0,0,S,S); cctx.imageSmoothingQuality='high'; drawCrop(cctx,img,it,0,0,S);
+    // 3分割ガイド
+    cctx.strokeStyle='rgba(255,255,255,.35)'; cctx.lineWidth=1*dpr;
+    for(let k=1;k<3;k++){ cctx.beginPath(); cctx.moveTo(S*k/3,0); cctx.lineTo(S*k/3,S); cctx.moveTo(0,S*k/3); cctx.lineTo(S,S*k/3); cctx.stroke(); }
+  }
+  let boardTimer;
+  function soonBoard(){ clearTimeout(boardTimer); boardTimer=setTimeout(renderBoard,180); }
+
+  $('inName').addEventListener('input',e=>{ ensureItem().name=e.target.value; save(); soonBoard(); });
+  $('inSub').addEventListener('input',e=>{ ensureItem().sub=e.target.value; save(); soonBoard(); });
+  $('editDone').addEventListener('click',hideSheet);
+  $('editDone2').addEventListener('click',hideSheet);
+
+  function move(d){
+    const j=cur+d; if(j<0||j>8) return;
+    [state.items[cur],state.items[j]]=[state.items[j],state.items[cur]];
+    cur=j; syncEditHead(); save(); renderBoard();
+  }
+  $('rankUp').addEventListener('click',()=>move(-1));
+  $('rankDown').addEventListener('click',()=>move(1));
+
+  let armTimer;
+  function disarm(){ const b=$('clearSlot'); b.classList.remove('armed'); b.textContent='この枠を空にする'; clearTimeout(armTimer); }
+  $('clearSlot').addEventListener('click',e=>{
+    const b=e.currentTarget;
+    if(!b.classList.contains('armed')){ b.classList.add('armed'); b.textContent='もう一度タップで空にする'; armTimer=setTimeout(disarm,3000); return; }
+    disarm(); state.items[cur]=null; $('inName').value=''; $('inSub').value=''; save(); syncCrop(); renderBoard(); toast(`${cur+1}位を空にしました`);
+  });
+
+  // 写真選択
+  const fileIn=$('file');
+  $('pickBig').addEventListener('click',()=>fileIn.click());
+  $('pickSmall').addEventListener('click',()=>fileIn.click());
+  fileIn.addEventListener('change',()=>{
+    const f=fileIn.files&&fileIn.files[0]; fileIn.value=''; if(!f) return;
+    const url=URL.createObjectURL(f); const im=new Image();
+    im.onload=()=>{
+      const MAX=1000, k=Math.min(1,MAX/Math.max(im.naturalWidth,im.naturalHeight));
+      const w=Math.round(im.naturalWidth*k), h=Math.round(im.naturalHeight*k);
+      const c=document.createElement('canvas'); c.width=w; c.height=h;
+      const x=c.getContext('2d'); x.imageSmoothingQuality='high'; x.drawImage(im,0,0,w,h);
+      URL.revokeObjectURL(url);
+      const it=ensureItem(); it.src=c.toDataURL('image/jpeg',.86); it.w=w; it.h=h; it.crop={s:1,ox:0,oy:-0.0};
+      // 縦長写真は顔が上にあることが多いので少し上寄せ
+      if(h>w){ it.crop.oy = Math.min(((h/w)-1)/2, 0.12); }
+      clampCrop(it); save(); syncCrop(); renderBoard();
+    };
+    im.onerror=()=>{ URL.revokeObjectURL(url); toast('この画像は読み込めませんでした。JPEGかPNGで試してください'); };
+    im.src=url;
+  });
+
+  // ドラッグ・ピンチ
+  const ptrs=new Map(); let pinch=null;
+  cv.addEventListener('pointerdown',e=>{
+    const it=item(); if(!it||!it.src) return;
+    cv.setPointerCapture(e.pointerId); ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    if(ptrs.size===2){ const [a,b]=[...ptrs.values()]; pinch={d:Math.hypot(a.x-b.x,a.y-b.y), s:it.crop.s}; }
+  });
+  cv.addEventListener('pointermove',e=>{
+    const it=item(); if(!ptrs.has(e.pointerId)||!it||!it.src) return;
+    const prev=ptrs.get(e.pointerId); const size=cv.getBoundingClientRect().width;
+    ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    if(ptrs.size===1){
+      it.crop.ox += (e.clientX-prev.x)/size; it.crop.oy += (e.clientY-prev.y)/size;
+    }else if(ptrs.size===2 && pinch){
+      const [a,b]=[...ptrs.values()];
+      it.crop.s = pinch.s * Math.hypot(a.x-b.x,a.y-b.y)/pinch.d;
+      it.crop.ox += (e.clientX-prev.x)/size/2; it.crop.oy += (e.clientY-prev.y)/size/2;
+      $('zoom').value=clamp(it.crop.s,1,4);
+    }
+    clampCrop(it); drawEditor(); save(); soonBoard();
+  });
+  const up=e=>{ ptrs.delete(e.pointerId); if(ptrs.size<2) pinch=null; };
+  cv.addEventListener('pointerup',up); cv.addEventListener('pointercancel',up);
+  cv.addEventListener('wheel',e=>{ const it=item(); if(!it||!it.src) return; e.preventDefault(); it.crop.s*=Math.exp(-e.deltaY*0.0015); clampCrop(it); $('zoom').value=it.crop.s; drawEditor(); save(); soonBoard(); },{passive:false});
+  $('zoom').addEventListener('input',e=>{ const it=item(); if(!it) return; it.crop.s=parseFloat(e.target.value); clampCrop(it); drawEditor(); save(); soonBoard(); });
+
+  /* ---------- デザイン ---------- */
+  $('boardTitle').addEventListener('click',()=>{ openDesign(); setTimeout(()=>$('inTitle').focus(),260); });
+  $('btnDesign').addEventListener('click',openDesign);
+  $('designDone').addEventListener('click',hideSheet);
+  function openDesign(){ disarmReset(); syncDesign(); showSheet($('designSheet')); }
+  function syncDesign(){
+    $('inTitle').value=state.title; $('inCrown').checked=state.crown;
+    const p=$('presets'); p.innerHTML='';
+    THEMES.forEach(t=>{
+      const b=document.createElement('button'); b.className='preset';
+      const same=Object.keys(t.c).every(k=>t.c[k].toLowerCase()===String(state.colors[k]).toLowerCase());
+      if(same) b.classList.add('sel');
+      b.innerHTML=`<div class="swatch"><i style="background:${t.c.bg}"></i><i style="background:${t.c.card}"></i><i style="background:${t.c.badge}"></i><i style="background:${t.c.title}"></i></div>${t.name}`;
+      b.addEventListener('click',()=>{ state.colors={...t.c}; save(); renderBoard(); syncDesign(); });
+      p.appendChild(b);
+    });
+    const cs=$('colors'); cs.innerHTML='';
+    COLOR_LABELS.forEach(([k,label])=>{
+      const l=document.createElement('label'); l.className='color';
+      l.innerHTML=`<input type="color" id="col-${k}" value="${state.colors[k]}">${label}`;
+      l.querySelector('input').addEventListener('input',e=>{ state.colors[k]=e.target.value; save(); applyColors(); soonBoard(); });
+      l.querySelector('input').addEventListener('change',()=>syncPresetSel());
+      cs.appendChild(l);
+    });
+  }
+  function syncPresetSel(){
+    [...$('presets').children].forEach((b,i)=>{
+      const t=THEMES[i]; b.classList.toggle('sel', Object.keys(t.c).every(k=>t.c[k].toLowerCase()===String(state.colors[k]).toLowerCase()));
+    });
+  }
+  $('inTitle').addEventListener('input',e=>{ state.title=e.target.value; $('boardTitle').textContent=state.title||' '; save(); });
+  $('inCrown').addEventListener('change',e=>{ state.crown=e.target.checked; save(); renderBoard(); });
+  let resetTimer;
+  function disarmReset(){ const b=$('resetAll'); b.classList.remove('armed'); b.textContent='すべてリセット'; clearTimeout(resetTimer); }
+  $('resetAll').addEventListener('click',e=>{
+    const b=e.currentTarget;
+    if(!b.classList.contains('armed')){ b.classList.add('armed'); b.textContent='もう一度タップで写真も文字も消去'; resetTimer=setTimeout(disarmReset,3000); return; }
+    disarmReset(); state=fresh(); thumbCache.clear(); imgCache.clear(); save(); renderBoard(); syncDesign(); toast('リセットしました');
+  });
+
+  /* ---------- 画像書き出し ---------- */
+  function rr(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+  function fitFont(ctx,text,weight,size,maxW,min){
+    let s=size; ctx.font=`${weight} ${s}px "Noto Sans JP", sans-serif`;
+    while(ctx.measureText(text).width>maxW && s>min){ s-=1; ctx.font=`${weight} ${s}px "Noto Sans JP", sans-serif`; }
+    if(ctx.measureText(text).width<=maxW) return text;
+    let t=text; while(t.length>1 && ctx.measureText(t+'…').width>maxW) t=t.slice(0,-1); return t+'…';
+  }
+  const hexA=(hex,a)=>{ const n=parseInt(hex.slice(1),16); return `rgba(${n>>16},${(n>>8)&255},${n&255},${a})`; };
+
+  async function buildImage(){
+    try{ await Promise.all([document.fonts.load('800 60px "Noto Sans JP"'),document.fonts.load('700 30px "Noto Sans JP"'),document.fonts.load('500 24px "Noto Sans JP"')]); }catch(e){}
+    const c=state.colors;
+    const W=1080, pad=44, gap=24, cw=(W-pad*2-gap*2)/3, ip=16, S=cw-ip*2;
+    const ch=ip+S+40+30+24;
+    const top=190, H=Math.round(top+ch*3+gap*2+56);
+    const cvs=document.createElement('canvas'); cvs.width=W; cvs.height=H;
+    const ctx=cvs.getContext('2d'); ctx.imageSmoothingQuality='high';
+    ctx.fillStyle=c.bg; ctx.fillRect(0,0,W,H);
+    // タイトル
+    ctx.fillStyle=c.title; ctx.textAlign='center'; ctx.textBaseline='alphabetic';
+    const tt=fitFont(ctx,state.title||'',800,70,W-pad*2,34); ctx.fillText(tt,W/2,122);
+    const imgs=await Promise.all(state.items.map(getImg));
+    for(let i=0;i<9;i++){
+      const it=state.items[i], x=pad+(i%3)*(cw+gap), y=top+Math.floor(i/3)*(ch+gap);
+      ctx.save(); ctx.shadowColor='rgba(60,20,40,.07)'; ctx.shadowBlur=18; ctx.shadowOffsetY=3;
+      ctx.fillStyle=c.card; rr(ctx,x,y,cw,ch,10); ctx.fill(); ctx.restore();
+      const ix=x+ip, iy=y+ip;
+      ctx.save(); rr(ctx,ix,iy,S,S,18); ctx.clip();
+      if(imgs[i]) drawCrop(ctx,imgs[i],it,ix,iy,S); else { ctx.fillStyle=hexA(c.sub,.12); ctx.fillRect(ix,iy,S,S); }
+      ctx.restore();
+      drawBadge(ctx,i+1,ix+S*0.07,iy+S*0.07,c);
+      ctx.textAlign='left';
+      if(it&&it.name){ ctx.fillStyle=c.name; const t=fitFont(ctx,it.name,700,27,S-4,18); ctx.fillText(t,ix+2,iy+S+44); }
+      if(it&&it.sub){ ctx.fillStyle=c.sub; const t=fitFont(ctx,it.sub,500,21,S-4,15); ctx.fillText(t,ix+2,iy+S+44+31); }
+    }
+    return cvs.toDataURL('image/jpeg',.92);
+  }
+  function drawBadge(ctx,rank,x,y,c){
+    const h=54;
+    if(rank<=3 && state.crown){
+      const pal={1:['#F7E09A','#DDB257','#6B4A12'],2:['#F2F3F6','#C9CDD5','#4A4F58'],3:['#EFC9A6','#C88C5F','#5A3316']}[rank];
+      const w=98; const g=ctx.createLinearGradient(x,y,x+w*.4,y+h); g.addColorStop(0,pal[0]); g.addColorStop(1,pal[1]);
+      ctx.save(); ctx.shadowColor='rgba(0,0,0,.14)'; ctx.shadowBlur=6; ctx.shadowOffsetY=1.5;
+      ctx.fillStyle=g; rr(ctx,x,y,w,h,h/2); ctx.fill(); ctx.restore();
+      ctx.strokeStyle='rgba(255,255,255,.5)'; ctx.lineWidth=1.5; rr(ctx,x+.75,y+.75,w-1.5,h-1.5,h/2); ctx.stroke();
+      ctx.save(); ctx.translate(x+14,y+h/2-14); ctx.scale(28/24,28/24);
+      ctx.strokeStyle=pal[2]; ctx.lineWidth=2; ctx.lineJoin='round'; ctx.stroke(new Path2D(CROWN)); ctx.restore();
+      ctx.fillStyle=pal[2]; ctx.font='800 34px "Noto Sans JP", sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(String(rank),x+68,y+h/2+1); ctx.textBaseline='alphabetic';
+    }else{
+      ctx.fillStyle=c.badge; rr(ctx,x,y,h,h,9); ctx.fill();
+      ctx.fillStyle='#fff'; ctx.font='800 32px "Noto Sans JP", sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(String(rank),x+h/2,y+h/2+1); ctx.textBaseline='alphabetic';
+    }
+  }
+  $('btnExport').addEventListener('click',async()=>{
+    const m=$('exportModal'); m.hidden=false; $('exportLoading').hidden=false; $('exportImg').hidden=true; $('exportMsg').hidden=true;
+    try{
+      const url=await buildImage(); if(m.hidden) return;
+      $('exportImg').src=url; $('exportImg').hidden=false; $('exportMsg').hidden=false; $('exportLoading').hidden=true;
+    }catch(e){ $('exportLoading').textContent='画像を作れませんでした。もう一度お試しください'; }
+  });
+  function closeExport(){ $('exportModal').hidden=true; $('exportLoading').textContent='画像を作っています…'; }
+  $('exportClose').addEventListener('click',closeExport);
+
+  renderBoard();
+})();
+</script>
+
+</body>
+</html>
